@@ -1,0 +1,5 @@
+[package]
+
+name = "hue"
+version = "0.0.1"
+authors = ["Matt McPherrin <git@mcpherrin.ca>"]
