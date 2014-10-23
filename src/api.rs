@@ -82,7 +82,7 @@ pub mod light {
   }
 
   macro_rules! find_and(
-    ($map: ident, $field: expr, $function: ident) => (
+    ($map: ident, $field: expr, $function: path) => (
       $map.find(&$field.to_string()).and_then(|x| $function(x))
     )
   )
@@ -99,10 +99,10 @@ pub mod light {
             // This is the worst line of Rust I have ever written:
             xy: map.find(&"xy".to_string()).and_then(|x| json::decode(x.to_string().as_slice()).ok()),
             ct: find_and!(map, "ct", json_u16),
-            alert: None,
-            effect: None,
-            colormode: None,
-            reachable: None,
+            alert: find_and!(map, "alert", Alert::from_json),
+            effect: find_and!(map, "effect", Effect::from_json),
+            colormode: find_and!(map, "colormode", ColorMode::from_json),
+            reachable: find_and!(map, "reachable", json_bool),
             transitiontime: find_and!(map, "transitiontime", json_u16),
           }),
         _ => None,
@@ -122,6 +122,22 @@ pub mod light {
     }
   }
 
+  impl ColorMode {
+    fn from_json(json: &Json) -> Option<ColorMode> {
+      match json {
+        &json::String(ref s) => {
+          match s.as_slice() {
+            "hs" => Some(HueSat),
+            "xy" => Some(CieXy),
+            "ct" => Some(ColorTemperature),
+            _ => None,
+          }
+        }
+        _ => None
+      }
+    }
+  }
+
   pub enum Alert { NoAlert, Select, LSelect }
   impl ToJson for Alert {
     fn to_json(&self) -> json::Json {
@@ -134,6 +150,22 @@ pub mod light {
     }
   }
 
+  impl Alert {
+    fn from_json(json: &Json) -> Option<Alert> {
+      match json {
+        &json::String(ref s) => {
+          match s.as_slice() {
+            "none" => Some(NoAlert),
+            "select" => Some(Select),
+            "lselect" => Some(LSelect),
+            _ => None,
+          }
+        }
+        _ => None
+      }
+    }
+  }
+
   pub enum Effect { NoEffect, ColorLoop }
   impl ToJson for Effect {
     fn to_json(&self) -> json::Json {
@@ -142,6 +174,21 @@ pub mod light {
           NoEffect => "none",
           ColorLoop => "colorloop",
         }.to_string())
+    }
+  }
+
+  impl Effect {
+    fn from_json(json: &Json) -> Option<Effect> {
+      match json {
+        &json::String(ref s) => {
+          match s.as_slice() {
+            "none" => Some(NoEffect),
+            "colorloop" => Some(ColorLoop),
+            _ => None,
+          }
+        }
+        _ => None
+      }
     }
   }
 
