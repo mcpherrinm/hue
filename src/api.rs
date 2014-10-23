@@ -39,22 +39,16 @@ pub mod light {
     )
   )
   macro_rules! maybe_insert(
-    ($slf: ident, $object: ident, $($field:ident),* ) => (
+    ($slf: ident, $object: ident, $($field:ident),* ) => ({
       $( maybe_insert_named!($slf, $object, $field, stringify!($field)) )*
-    )
+    })
   )
 
   impl ToJson for State {
     fn to_json(&self) -> Json {
       let mut object = TreeMap::new();
-      maybe_insert!(self, object, on, bri, hue, sat);
-      maybe_insert!(self, object, xy);
-      maybe_insert!(self, object, ct);
-      maybe_insert!(self, object, alert);
-      maybe_insert!(self, object, effect);
-      maybe_insert!(self, object, colormode);
-      maybe_insert!(self, object, reachable);
-      maybe_insert!(self, object, transitiontime);
+      maybe_insert!(self, object, on, bri, hue, sat, xy, ct, alert, effect);
+      maybe_insert!(self, object, colormode, reachable, transitiontime);
       json::Object(object)
     }
   }
