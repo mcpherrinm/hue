@@ -3,14 +3,42 @@
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
 
-trait FromJson<T> {
-  fn from_json<T>(::serialize::json::Json) -> Option<T>;
+mod json_helper {
+  /// Because honestly the existing parser is pants-on-head.
+  use serialize::json;
+  use serialize::json::Json;
+  pub fn json_bool(jb: &Json) -> Option<bool> {
+    match jb {
+      &json::Boolean(b) => Some(b),
+      _ => None
+    }
+  }
+
+  pub fn json_u8(j: &Json) -> Option<u8> {
+    match j {
+      &json::U64(n) => Some(n as u8),
+      _ => None
+    }
+  }
+  pub fn json_u16(j: &Json) -> Option<u16> {
+    match j {
+      &json::U64(n) => Some(n as u16),
+      _ => None
+    }
+  }
+  pub fn json_f32(j: &Json) -> Option<f32> {
+    match j {
+      &json::F64(n) => Some(n as f32),
+      _ => None
+    }
+  }
 }
 
 pub mod light {
   use std::collections::TreeMap;
   use serialize::json;
-  use serialize::json::{Json, ToJson};
+  use serialize::json::{Json, ToJson, decode};
+  use super::json_helper::{json_bool, json_u8, json_u16, json_f32};
 
   /// All except transitiontime are returned when you read the state on a hue.
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
@@ -53,29 +81,34 @@ pub mod light {
     }
   }
 
-/*
-  impl super::FromJson<State> for State {
-    fn from_json<State>(object: Json) -> Option<State> {
+  macro_rules! find_and(
+    ($map: ident, $field: expr, $function: ident) => (
+      $map.find(&$field.to_string()).and_then(|x| $function(x))
+    )
+  )
+
+  impl State {
+    pub fn from_json(object: Json) -> Option<State> {
       match object {
-        json::Object(map) => 
+        json::Object(map) =>
           Some(State {
-      //      on: map.find(&"on".to_string()).map(|x| super::FromJson::from_json(*x).unwrap()),
-      on: None,
-            bri: None,
-            hue: None,
-            sat: None,
-            xy: None,
-            ct: None,
+            on: find_and!(map, "on", json_bool),
+            bri: find_and!(map, "bri", json_u8),
+            hue: find_and!(map,"hue", json_u16),
+            sat: find_and!(map, "bri", json_u8),
+            // This is the worst line of Rust I have ever written:
+            xy: map.find(&"xy".to_string()).and_then(|x| json::decode(x.to_string().as_slice()).ok()),
+            ct: find_and!(map, "ct", json_u16),
             alert: None,
             effect: None,
             colormode: None,
             reachable: None,
-            transitiontime: None,
+            transitiontime: find_and!(map, "transitiontime", json_u16),
           }),
         _ => None,
       }
     }
-  }*/
+  }
 
   pub enum ColorMode { HueSat, CieXy, ColorTemperature }
   impl ToJson for ColorMode {
