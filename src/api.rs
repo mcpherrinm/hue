@@ -3,42 +3,11 @@
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
 
-mod json_helper {
-  /// Because honestly the existing parser is pants-on-head.
-  use serialize::json;
-  use serialize::json::Json;
-  pub fn json_bool(jb: &Json) -> Option<bool> {
-    match jb {
-      &json::Boolean(b) => Some(b),
-      _ => None
-    }
-  }
-
-  pub fn json_u8(j: &Json) -> Option<u8> {
-    match j {
-      &json::U64(n) => Some(n as u8),
-      _ => None
-    }
-  }
-  pub fn json_u16(j: &Json) -> Option<u16> {
-    match j {
-      &json::U64(n) => Some(n as u16),
-      _ => None
-    }
-  }
-  pub fn json_f32(j: &Json) -> Option<f32> {
-    match j {
-      &json::F64(n) => Some(n as f32),
-      _ => None
-    }
-  }
-}
-
 pub mod light {
   use std::collections::TreeMap;
   use serialize::json;
-  use serialize::json::{Json, ToJson, decode};
-  use super::json_helper::{json_bool, json_u8, json_u16, json_f32};
+  use serialize::json::{Json, ToJson};
+  use super::super::json_helper::FromJson;
 
   /// All except transitiontime are returned when you read the state on a hue.
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
@@ -82,8 +51,8 @@ pub mod light {
   }
 
   macro_rules! find_and(
-    ($map: ident, $field: expr, $function: path) => (
-      $map.find(&$field.to_string()).and_then(|x| $function(x))
+    ($map: ident, $field: expr) => (
+      $map.find(&$field.to_string()).and_then(|x| FromJson::from_json(x))
     )
   )
 
@@ -92,18 +61,21 @@ pub mod light {
       match object {
         json::Object(map) =>
           Some(State {
-            on: find_and!(map, "on", json_bool),
-            bri: find_and!(map, "bri", json_u8),
-            hue: find_and!(map,"hue", json_u16),
-            sat: find_and!(map, "bri", json_u8),
+            on: find_and!(map, "on"),
+            bri: find_and!(map, "bri"),
+            hue: find_and!(map,"hue"),
+            sat: find_and!(map, "bri"),
             // This is the worst line of Rust I have ever written:
+            // The map *lookup* requires an allocation to get a &String, and
+            // then the resulting Json object is turned into a string just so
+            // it can be parsed again by the json library into the right type.
             xy: map.find(&"xy".to_string()).and_then(|x| json::decode(x.to_string().as_slice()).ok()),
-            ct: find_and!(map, "ct", json_u16),
-            alert: find_and!(map, "alert", Alert::from_json),
-            effect: find_and!(map, "effect", Effect::from_json),
-            colormode: find_and!(map, "colormode", ColorMode::from_json),
-            reachable: find_and!(map, "reachable", json_bool),
-            transitiontime: find_and!(map, "transitiontime", json_u16),
+            ct: find_and!(map, "ct"),
+            alert: find_and!(map, "alert"),
+            effect: find_and!(map, "effect"),
+            colormode: find_and!(map, "colormode"),
+            reachable: find_and!(map, "reachable"),
+            transitiontime: find_and!(map, "transitiontime"),
           }),
         _ => None,
       }
@@ -122,7 +94,7 @@ pub mod light {
     }
   }
 
-  impl ColorMode {
+  impl FromJson for ColorMode {
     fn from_json(json: &Json) -> Option<ColorMode> {
       match json {
         &json::String(ref s) => {
@@ -150,7 +122,7 @@ pub mod light {
     }
   }
 
-  impl Alert {
+  impl FromJson for Alert {
     fn from_json(json: &Json) -> Option<Alert> {
       match json {
         &json::String(ref s) => {
@@ -177,7 +149,7 @@ pub mod light {
     }
   }
 
-  impl Effect {
+  impl FromJson for Effect {
     fn from_json(json: &Json) -> Option<Effect> {
       match json {
         &json::String(ref s) => {
