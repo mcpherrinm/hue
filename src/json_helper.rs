@@ -50,6 +50,23 @@ impl FromJson for String {
   }
 }
 
+impl<T, U> FromJson for (T, U) where T: FromJson, U: FromJson {
+  fn from_json(j: &Json) -> Option<(T, U)> {
+    match j {
+      &json::List(ref vec) => {
+          if vec.len() != 2 { return None };
+          let (f1, f2) = (FromJson::from_json(&vec[0]),
+                          FromJson::from_json(&vec[1]));
+          if f1.is_some() && f2.is_some() {
+            return Some((f1.unwrap(), f2.unwrap()));
+          }
+          None
+        },
+      _ => None
+    }
+  }
+}
+
 #[test]
 fn test() {
   let b: Option<bool> = FromJson::from_json(&json::U64(1));

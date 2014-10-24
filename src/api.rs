@@ -50,9 +50,9 @@ pub mod light {
     }
   }
 
-  macro_rules! find_and(
+  macro_rules! find_from_json(
     ($map: ident, $field: expr) => (
-      $map.find(&$field.to_string()).and_then(|x| FromJson::from_json(x))
+      $map.find(&$field.into_string()).and_then(|x| FromJson::from_json(x))
     )
   )
 
@@ -61,22 +61,17 @@ pub mod light {
       match object {
         &json::Object(ref map) =>
           Some(State {
-            on: find_and!(map, "on"),
-            bri: find_and!(map, "bri"),
-            hue: find_and!(map,"hue"),
-            sat: find_and!(map, "bri"),
-            // This is the worst line of Rust I have ever written:
-            // The map *lookup* requires an allocation to get a &String, and
-            // then the resulting Json object is turned into a string just so
-            // it can be parsed again by the json library into the right type.
-            // Really I need to impl FromJson for (f32, f32)
-            xy: map.find(&"xy".to_string()).and_then(|x| json::decode(x.to_string().as_slice()).ok()),
-            ct: find_and!(map, "ct"),
-            alert: find_and!(map, "alert"),
-            effect: find_and!(map, "effect"),
-            colormode: find_and!(map, "colormode"),
-            reachable: find_and!(map, "reachable"),
-            transitiontime: find_and!(map, "transitiontime"),
+            on: find_from_json!(map, "on"),
+            bri: find_from_json!(map, "bri"),
+            hue: find_from_json!(map,"hue"),
+            sat: find_from_json!(map, "bri"),
+            xy: find_from_json!(map, "xy"),
+            ct: find_from_json!(map, "ct"),
+            alert: find_from_json!(map, "alert"),
+            effect: find_from_json!(map, "effect"),
+            colormode: find_from_json!(map, "colormode"),
+            reachable: find_from_json!(map, "reachable"),
+            transitiontime: find_from_json!(map, "transitiontime"),
           }),
         _ => None,
       }
@@ -183,11 +178,11 @@ pub mod light {
         &json::Object(ref map) =>
           Some(Attributes{
           // These should return None instead of failing
-            state: find_and!(map, "state").unwrap(),
-            type_: find_and!(map, "type").unwrap(),
-            name: find_and!(map, "name").unwrap(),
-            modelid: find_and!(map, "modelid").unwrap(),
-            swversion: find_and!(map, "swversion").unwrap(),
+            state: find_from_json!(map, "state").unwrap(),
+            type_: find_from_json!(map, "type").unwrap(),
+            name: find_from_json!(map, "name").unwrap(),
+            modelid: find_from_json!(map, "modelid").unwrap(),
+            swversion: find_from_json!(map, "swversion").unwrap(),
             pointsymbol: PointSymbol,
           }),
         _ => None,
