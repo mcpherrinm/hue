@@ -56,10 +56,10 @@ pub mod light {
     )
   )
 
-  impl State {
-    pub fn from_json(object: Json) -> Option<State> {
+  impl FromJson for State {
+    fn from_json(object: &Json) -> Option<State> {
       match object {
-        json::Object(map) =>
+        &json::Object(ref map) =>
           Some(State {
             on: find_and!(map, "on"),
             bri: find_and!(map, "bri"),
@@ -69,6 +69,7 @@ pub mod light {
             // The map *lookup* requires an allocation to get a &String, and
             // then the resulting Json object is turned into a string just so
             // it can be parsed again by the json library into the right type.
+            // Really I need to impl FromJson for (f32, f32)
             xy: map.find(&"xy".to_string()).and_then(|x| json::decode(x.to_string().as_slice()).ok()),
             ct: find_and!(map, "ct"),
             alert: find_and!(map, "alert"),
@@ -176,6 +177,24 @@ pub mod light {
 
   // No ToJson implementation for Attributes since we only recieve it.
 
+  impl FromJson for Attributes {
+    fn from_json(json: &Json) -> Option<Attributes> {
+      match json {
+        &json::Object(ref map) =>
+          Some(Attributes{
+          // These should return None instead of failing
+            state: find_and!(map, "state").unwrap(),
+            type_: find_and!(map, "type").unwrap(),
+            name: find_and!(map, "name").unwrap(),
+            modelid: find_and!(map, "modelid").unwrap(),
+            swversion: find_and!(map, "swversion").unwrap(),
+            pointsymbol: PointSymbol,
+          }),
+        _ => None,
+      }
+    }
+  }
+
   /// Reserved for future use, apparently.
   pub struct PointSymbol;
 
@@ -195,10 +214,4 @@ pub mod light {
     assert_eq!(state.to_json().to_string(),
                "{\"on\":false}".to_string());
   }
-
-
-
 }
-
-
-

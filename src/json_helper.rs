@@ -40,6 +40,16 @@ impl FromJson for f32 {
   }
 }
 
+impl FromJson for String {
+  fn from_json(j: &Json) -> Option<String> {
+    // This is really crummy that I need to copy.
+    match j {
+      &json::String(ref s) => Some(s.clone()),
+      _ => None
+    }
+  }
+}
+
 #[test]
 fn test() {
   let b: Option<bool> = FromJson::from_json(&json::U64(1));
