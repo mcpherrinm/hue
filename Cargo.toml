@@ -5,4 +5,4 @@ version = "0.0.1"
 authors = ["Matt McPherrin <git@mcpherrin.ca>"]
 
 [dependencies.curl]
-git = "https://github.com/carllerche/curl-rust.git"
+git = "https://github.com/mcpherrinm/curl-rust.git"
