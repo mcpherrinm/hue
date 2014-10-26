@@ -9,9 +9,24 @@ pub mod light {
   use serialize::json::{Json, ToJson};
   use super::super::json_helper::FromJson;
 
+  /// The trait describing REST endpoints on the API.  Implemented by Bridge
+  trait Light {
+    /// GET /lights
+    fn get_all(&mut self) -> Option<Vec<(String, Attributes)>>;
+
+    /// GET /lights/<id>
+    fn get_attributes(&mut self, id: &str) -> Option<Attributes>;
+
+    /// PUT /lights/<id>/state
+    fn set_state(&mut self, state: State) -> Option<Status>;
+
+    /// PUT /lights/<id>
+    fn rename(&mut self, name: &str) -> Option<Status>;
+  }
+
   /// All except transitiontime are returned when you read the state on a hue.
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
-  /// conflicting color mode options.  Reachable is always true.
+  /// conflicting color mode options.
   /// Possibly this should be three structs, as some members are only get/set
   pub struct State {
     pub on: Option<bool>,
@@ -160,7 +175,6 @@ pub mod light {
     }
   }
 
-  /// Returned from /api/<username>/lights/<id>
   pub struct Attributes {
     pub state: State,
     pub type_: String,
@@ -192,6 +206,13 @@ pub mod light {
 
   /// Reserved for future use, apparently.
   pub struct PointSymbol;
+
+  /// Lots of APIs returned this fairly poorly speced struct.
+  /// TODO: Hammer the API to figure it out better.
+  pub struct Status {
+    pub success: bool,
+    pub value: String
+  }
 
   #[test]
   fn test_encode_state() {
