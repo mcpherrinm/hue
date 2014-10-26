@@ -3,14 +3,33 @@
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
 
+/// Lots of APIs returned this fairly poorly speced struct.
+/// TODO: Hammer the API to figure it out better.
+pub struct Status {
+  pub success: bool,
+  pub value: String
+}
+
+impl super::json_helper::FromJson for Status {
+  fn from_json(json: &::serialize::json::Json) -> Option<Status> {
+    match json {
+      &::serialize::json::String(ref s) => {
+          None
+      }
+      _ => None
+    }
+  }
+}
+
 pub mod light {
   use std::collections::TreeMap;
   use serialize::json;
   use serialize::json::{Json, ToJson};
   use super::super::json_helper::FromJson;
+  use super::Status;
 
   /// The trait describing REST endpoints on the API.  Implemented by Bridge
-  trait Light {
+  pub trait Light {
     /// GET /lights
     fn get_all(&mut self) -> Option<Vec<(String, Attributes)>>;
 
@@ -18,7 +37,7 @@ pub mod light {
     fn get_attributes(&mut self, id: &str) -> Option<Attributes>;
 
     /// PUT /lights/<id>/state
-    fn set_state(&mut self, state: State) -> Option<Status>;
+    fn set_state(&mut self, id: &str, state: State) -> Option<Status>;
 
     /// PUT /lights/<id>
     fn rename(&mut self, name: &str) -> Option<Status>;
@@ -206,13 +225,6 @@ pub mod light {
 
   /// Reserved for future use, apparently.
   pub struct PointSymbol;
-
-  /// Lots of APIs returned this fairly poorly speced struct.
-  /// TODO: Hammer the API to figure it out better.
-  pub struct Status {
-    pub success: bool,
-    pub value: String
-  }
 
   #[test]
   fn test_encode_state() {

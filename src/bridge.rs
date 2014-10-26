@@ -2,6 +2,7 @@ extern crate curl;
 
 use serialize::json::{Json, ToJson};
 use super::json_helper::FromJson;
+use super::api;
 
 pub struct Bridge {
   host: String,
@@ -22,8 +23,8 @@ impl Bridge {
     self.request(curl::http::handle::Get, path, None)
   }
 
-  pub fn put<T: FromJson>(&mut self, path: &str, body: Option<Json>) -> Option<T> {
-    self.request(curl::http::handle::Put, path, body)
+  pub fn put<T: FromJson>(&mut self, path: &str, body: Json) -> Option<T> {
+    self.request(curl::http::handle::Put, path, Some(body))
   }
 
   /// Do a request to the bridge API.  Don't include the /api/username portion in path.
@@ -47,4 +48,23 @@ impl Bridge {
       _ => None
     }
   }
+}
+
+impl api::light::Light for Bridge {
+  fn get_all(&mut self) -> Option<Vec<(String, api::light::Attributes)>> {
+    None
+  }
+
+  fn get_attributes(&mut self, id: &str) -> Option<api::light::Attributes> {
+    self.get(format!("/lights/{:s}", id).as_slice())
+  }
+
+  fn set_state(&mut self, id: &str, state: api::light::State) -> Option<api::Status> {
+    self.put(format!("/lights/{:s}/state", id).as_slice(), state.to_json())
+  }
+
+  fn rename(&mut self, name: &str) -> Option<api::Status> {
+    None
+  }
+
 }
