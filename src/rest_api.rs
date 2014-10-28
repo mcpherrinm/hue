@@ -3,8 +3,8 @@
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
 
-/// Lots of APIs returned this fairly poorly speced struct.
-/// TODO: Hammer the API to figure it out better.
+/// Lots of APIs returned a success/error data type:
+/// http://www.developers.meethue.com/documentation/error-messages
 pub struct Status {
   pub success: bool,
   pub value: String
