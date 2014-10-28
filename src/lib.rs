@@ -3,6 +3,6 @@
 
 extern crate serialize;
 mod json_helper;
-pub mod api;
+pub mod rest_api;
 pub mod bridge;
 

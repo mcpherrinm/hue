@@ -2,7 +2,7 @@ extern crate curl;
 
 use serialize::json::{Json, ToJson};
 use super::json_helper::FromJson;
-use super::api;
+use super::rest_api;
 
 pub struct Bridge {
   host: String,
@@ -50,20 +50,20 @@ impl Bridge {
   }
 }
 
-impl api::light::Light for Bridge {
-  fn get_all(&mut self) -> Option<Vec<(String, api::light::Attributes)>> {
+impl rest_api::light::Light for Bridge {
+  fn get_all(&mut self) -> Option<Vec<(String, rest_api::light::Attributes)>> {
     None
   }
 
-  fn get_attributes(&mut self, id: &str) -> Option<api::light::Attributes> {
+  fn get_attributes(&mut self, id: &str) -> Option<rest_api::light::Attributes> {
     self.get(format!("/lights/{:s}", id).as_slice())
   }
 
-  fn set_state(&mut self, id: &str, state: api::light::State) -> Option<api::Status> {
+  fn set_state(&mut self, id: &str, state: rest_api::light::State) -> Option<rest_api::Status> {
     self.put(format!("/lights/{:s}/state", id).as_slice(), state.to_json())
   }
 
-  fn rename(&mut self, name: &str) -> Option<api::Status> {
+  fn rename(&mut self, name: &str) -> Option<rest_api::Status> {
     None
   }
 
