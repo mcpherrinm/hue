@@ -11,16 +11,16 @@ pub mod bridge;
 
 // Should this be a trait Hue impld on bridge?
 /// A Hue API handle.
-struct Hue {
+pub struct Hue {
   bridge: bridge::Bridge
 
 }
 
-struct LightIter;
-struct Light;
+pub struct LightIter;
+pub struct Light;
 
 impl Hue {
-  fn new() -> Hue {
+  pub fn new() -> Hue {
     // Need to replace with bridge discovery
     // and proper auth stuff.
     let host = "192.168.1.10".to_string();
@@ -28,12 +28,12 @@ impl Hue {
   }
 
   /// A light controller for the Nth light
-  fn light(index: uint) -> Option<Light> {
+  pub fn light(index: uint) -> Option<Light> {
     None
   }
 
   /// Iterate over all lights
-  fn light_iter() -> LightIter {
+  pub fn light_iter() -> LightIter {
     LightIter
   }
 }
