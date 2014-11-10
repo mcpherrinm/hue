@@ -53,7 +53,8 @@ impl Bridge {
 
 impl rest_api::light::Light for Bridge {
   fn get_all(&mut self) -> Option<Vec<(String, rest_api::light::Attributes)>> {
-    None
+    // TODO: Deserialize "/lights" properly
+    Some(vec![])
   }
 
   fn get_attributes(&mut self, id: &str) -> Option<rest_api::light::Attributes> {
