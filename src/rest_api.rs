@@ -28,7 +28,7 @@ pub mod light {
   use super::super::json_helper::FromJson;
   use super::Status;
 
-  /// The trait describing REST endpoints on the API.  Implemented by Bridge
+  /// The trait describing lights REST endpoints on the API.  Implemented by Bridge
   pub trait Light {
     /// GET /lights
     fn get_all(&mut self) -> Option<Vec<(String, Attributes)>>;

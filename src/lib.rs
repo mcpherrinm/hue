@@ -2,6 +2,7 @@
 #![feature(if_let)]
 
 extern crate serialize;
+use rest_api::light::Light as RestLight;
 mod json_helper;
 
 // rest_api and bridge are lower level APIs that follow the Philips Hue Api
@@ -16,9 +17,6 @@ pub struct Hue {
 
 }
 
-pub struct LightIter;
-pub struct Light;
-
 impl Hue {
   pub fn new() -> Hue {
     // Need to replace with bridge discovery
@@ -28,12 +26,28 @@ impl Hue {
   }
 
   /// A light controller for the Nth light
-  pub fn light(index: uint) -> Option<Light> {
+  pub fn light<'a>(&'a mut self, index: uint) -> Option<Light<'a>> {
     None
   }
 
   /// Iterate over all lights
-  pub fn light_iter() -> LightIter {
-    LightIter
+  pub fn lights<'a>(&'a mut self) -> LightIter<'a> {
+    let lights = self.bridge.get_all().unwrap();
+    LightIter{handle: self, lights: lights}
   }
 }
+
+pub struct LightIter<'a> {
+  /// The Hue this was created for
+  handle: &'a mut Hue,
+  /// All the lights at the start of iteration
+  lights: Vec<(String, rest_api::light::Attributes)>,
+}
+
+impl<'a> Iterator<Light<'a>> for LightIter<'a> {
+  fn next(&mut self) -> Option<Light<'a>> {
+    None
+  }
+}
+
+pub struct Light<'a>;
