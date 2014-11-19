@@ -117,9 +117,9 @@ pub mod light {
     fn to_json(&self) -> Json {
       json::String(
         match *self {
-          HueSat => "hs",
-          CieXy => "xy",
-          ColorTemperature => "ct"
+          ColorMode::HueSat => "hs",
+          ColorMode::CieXy => "xy",
+          ColorMode::ColorTemperature => "ct"
         }.to_string())
     }
   }
@@ -129,9 +129,9 @@ pub mod light {
       match json {
         &json::String(ref s) => {
           match s.as_slice() {
-            "hs" => Some(HueSat),
-            "xy" => Some(CieXy),
-            "ct" => Some(ColorTemperature),
+            "hs" => Some(ColorMode::HueSat),
+            "xy" => Some(ColorMode::CieXy),
+            "ct" => Some(ColorMode::ColorTemperature),
             _ => None,
           }
         }
@@ -140,14 +140,14 @@ pub mod light {
     }
   }
 
-  pub enum Alert { NoAlert, Select, LSelect }
+  pub enum Alert { None, Select, LSelect }
   impl ToJson for Alert {
     fn to_json(&self) -> json::Json {
       json::String(
         match *self {
-          NoAlert => "none",
-          Select => "select",
-          LSelect => "lselect"
+          Alert::None => "none",
+          Alert::Select => "select",
+          Alert::LSelect => "lselect"
         }.to_string())
     }
   }
@@ -157,9 +157,9 @@ pub mod light {
       match json {
         &json::String(ref s) => {
           match s.as_slice() {
-            "none" => Some(NoAlert),
-            "select" => Some(Select),
-            "lselect" => Some(LSelect),
+            "none" => Some(Alert::None),
+            "select" => Some(Alert::Select),
+            "lselect" => Some(Alert::LSelect),
             _ => None,
           }
         }
@@ -168,13 +168,13 @@ pub mod light {
     }
   }
 
-  pub enum Effect { NoEffect, ColorLoop }
+  pub enum Effect { None, ColorLoop }
   impl ToJson for Effect {
     fn to_json(&self) -> json::Json {
       json::String(
         match *self {
-          NoEffect => "none",
-          ColorLoop => "colorloop",
+          Effect::None=> "none",
+          Effect::ColorLoop => "colorloop",
         }.to_string())
     }
   }
@@ -184,8 +184,8 @@ pub mod light {
       match json {
         &json::String(ref s) => {
           match s.as_slice() {
-            "none" => Some(NoEffect),
-            "colorloop" => Some(ColorLoop),
+            "none" => Some(Effect::None),
+            "colorloop" => Some(Effect::ColorLoop),
             _ => None,
           }
         }
