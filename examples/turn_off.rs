@@ -9,4 +9,7 @@ fn main() {
   let mut state = hue::rest_api::light::State{on: None, bri: None, hue: None, sat: None, xy: None, ct: None, alert: None, effect: None, colormode: None, reachable: None, transitiontime: None };
   state.on = Some(false);
   bridge.set_state("1", state);
+  bridge.set_state("2", state);
+  bridge.set_state("3", state);
+  bridge.set_state("4", state);
 }

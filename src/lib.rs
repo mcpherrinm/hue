@@ -26,28 +26,50 @@ impl Hue {
   }
 
   /// A light controller for the Nth light
-  pub fn light<'a>(&'a mut self, index: uint) -> Option<Light<'a>> {
-    None
+  pub fn light<'a>(&'a mut self, index: uint) -> Option<OneLight<'a>> {
+    self.lights().nth(index)
   }
 
   /// Iterate over all lights
   pub fn lights<'a>(&'a mut self) -> LightIter<'a> {
     let lights = self.bridge.get_all().unwrap();
-    LightIter{handle: self, lights: lights}
+    LightIter{handle: self, lights: lights.into_iter()}
   }
+}
+
+/// The Light trait describes some set of lights that you apply normal light
+/// operations for.  Implemented on individual lights, the all lights object,
+/// and groups. (Well, when I finish)
+trait Light {
+  //fn get_color() -> LightColor;
+  //fn set_color(color: LightColor);
+
 }
 
 pub struct LightIter<'a> {
   /// The Hue this was created for
   handle: &'a mut Hue,
   /// All the lights at the start of iteration
-  lights: Vec<(String, rest_api::light::Attributes)>,
+  lights: ::std::vec::MoveItems<(String, rest_api::light::Attributes)>,
 }
 
-impl<'a> Iterator<Light<'a>> for LightIter<'a> {
-  fn next(&mut self) -> Option<Light<'a>> {
-    None
+impl<'a> Iterator<OneLight<'a>> for LightIter<'a> {
+  fn next(&mut self) -> Option<OneLight<'a>> {
+    match self.lights.next() {
+      None => None,
+      Some((id, attrs)) => {
+        Some(OneLight{id: id, attrs: attrs})
+      }
+    }
   }
 }
 
-pub struct Light<'a>;
+pub struct OneLight<'a> {
+  id: String,
+  attrs: rest_api::light::Attributes
+}
+
+// This is the main
+impl<'a> Light for OneLight<'a> {
+
+}
