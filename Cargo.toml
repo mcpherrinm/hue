@@ -3,6 +3,9 @@
 name = "hue"
 version = "0.0.1"
 authors = ["Matt McPherrin <git@mcpherrin.ca>"]
+description = "The beginnings of a Philips Hue client library"
+repository = "http://github.com/mcpherrinm/hue.git"
+license="MIT"
 
 [dependencies]
 hyper="0.0.1"
