@@ -31,10 +31,8 @@ impl Bridge {
   pub fn request<T: FromJson>(&mut self, method: hyper::method::Method, path: &str, body: Option<Json>) -> Option<T> {
     let url = hyper::Url::parse(format!("http://{}/api/{}{}", self.host(), self.username(), path).as_slice()).unwrap();
     let mut request = hyper::client::request::Request::new(method, url).unwrap().start().unwrap();
-    let mut bs;
     if let Some(body) = body {
-      bs = body.to_string();
-      request.write_str(bs.as_slice());
+      request.write_str(body.to_string().as_slice());
     }
     let mut resp = request.send();
     match resp {
