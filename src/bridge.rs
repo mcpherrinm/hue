@@ -29,7 +29,7 @@ impl Bridge {
 
   /// Do a request to the bridge API.  Don't include the /api/username portion in path.
   pub fn request<T: FromJson>(&mut self, method: curl::http::handle::Method, path: &str, body: Option<Json>) -> Option<T> {
-    let uri = format!("http://{:s}/api/{:s}{:s}", self.host(), self.username(), path);
+    let uri = format!("http://{}/api/{}{}", self.host(), self.username(), path);
     println!("Url: {}", uri);
     let mut request = curl::http::handle::Request::new(&mut self.handle, method).uri(uri);
     let mut bs;
@@ -58,11 +58,11 @@ impl rest_api::light::Light for Bridge {
   }
 
   fn get_attributes(&mut self, id: &str) -> Option<rest_api::light::Attributes> {
-    self.get(format!("/lights/{:s}", id).as_slice())
+    self.get(format!("/lights/{}", id).as_slice())
   }
 
   fn set_state(&mut self, id: &str, state: rest_api::light::State) -> Option<rest_api::Status> {
-    self.put(format!("/lights/{:s}/state", id).as_slice(), state.to_json())
+    self.put(format!("/lights/{}/state", id).as_slice(), state.to_json())
   }
 
   fn rename(&mut self, name: &str) -> Option<rest_api::Status> {
