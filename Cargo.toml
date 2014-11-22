@@ -4,5 +4,5 @@ name = "hue"
 version = "0.0.1"
 authors = ["Matt McPherrin <git@mcpherrin.ca>"]
 
-[dependencies.curl]
-git = "https://github.com/carllerche/curl-rust.git"
+[dependencies]
+hyper="0.0.1"

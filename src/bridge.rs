@@ -1,18 +1,18 @@
-extern crate curl;
+extern crate hyper;
 
 use serialize::json::{Json, ToJson};
 use super::json_helper::FromJson;
 use super::rest_api;
+use std::io::{Reader, Writer};
 
 pub struct Bridge {
   host: String,
   username: String,
-  handle: curl::http::Handle,
 }
 
 impl Bridge {
   pub fn new(host: String, username: String) -> Bridge {
-    Bridge{ host: host, username: username, handle: curl::http::handle() }
+    Bridge{ host: host, username: username }
   }
 
 
@@ -20,31 +20,31 @@ impl Bridge {
   fn username(&self) -> &str { self.username.as_slice() }
 
   pub fn get<T: FromJson>(&mut self, path: &str) -> Option<T> {
-    self.request(curl::http::handle::Get, path, None)
+    self.request(hyper::Get, path, None)
   }
 
   pub fn put<T: FromJson>(&mut self, path: &str, body: Json) -> Option<T> {
-    self.request(curl::http::handle::Put, path, Some(body))
+    self.request(hyper::method::Method::Put, path, Some(body))
   }
 
   /// Do a request to the bridge API.  Don't include the /api/username portion in path.
-  pub fn request<T: FromJson>(&mut self, method: curl::http::handle::Method, path: &str, body: Option<Json>) -> Option<T> {
-    let uri = format!("http://{}/api/{}{}", self.host(), self.username(), path);
-    println!("Url: {}", uri);
-    let mut request = curl::http::handle::Request::new(&mut self.handle, method).uri(uri);
+  pub fn request<T: FromJson>(&mut self, method: hyper::method::Method, path: &str, body: Option<Json>) -> Option<T> {
+    let url = hyper::Url::parse(format!("http://{}/api/{}{}", self.host(), self.username(), path).as_slice()).unwrap();
+    let mut request = hyper::client::request::Request::new(method, url).unwrap().start().unwrap();
     let mut bs;
     if let Some(body) = body {
       bs = body.to_string();
-      request = request.body(&bs);
+      request.write_str(bs.as_slice());
     }
-    let resp = request.exec();
+    let mut resp = request.send();
     match resp {
-      Ok(resp) => {
-        if resp.get_code() != 200 { return None };
+      Ok(mut resp) => {
+        if resp.status != hyper::status::Ok { return None };
+        let body = resp.read_to_string().unwrap();
         // debug print:
-        println!("Response: {}", ::std::str::from_utf8(resp.get_body()));
+        println!("Response: {}", body);
         //
-        super::json_helper::FromJson::from_json(&resp.get_body().to_json())
+        super::json_helper::FromJson::from_json(&body.to_json())
       },
       _ => None
     }
