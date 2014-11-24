@@ -8,4 +8,4 @@ repository = "http://github.com/mcpherrinm/hue.git"
 license="MIT"
 
 [dependencies]
-hyper="0.0.1"
+hyper="*"

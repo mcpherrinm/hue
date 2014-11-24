@@ -53,7 +53,7 @@ impl FromJson for String {
 impl<T, U> FromJson for (T, U) where T: FromJson, U: FromJson {
   fn from_json(j: &Json) -> Option<(T, U)> {
     match j {
-      &json::List(ref vec) => {
+      &json::Array(ref vec) => {
           if vec.len() != 2 { return None };
           let (f1, f2) = (FromJson::from_json(&vec[0]),
                           FromJson::from_json(&vec[1]));
