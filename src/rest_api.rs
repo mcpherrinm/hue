@@ -47,6 +47,7 @@ pub mod light {
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
   /// conflicting color mode options.
   /// Possibly this should be three structs, as some members are only get/set
+  #[deriving(Default)]
   pub struct State {
     pub on: Option<bool>,
     pub bri: Option<u8>,
