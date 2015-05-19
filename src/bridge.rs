@@ -33,7 +33,7 @@ impl Bridge {
     let url = hyper::Url::parse(&format!("http://{}/api/{}{}", self.host(), self.username(), path)[..]).unwrap();
     let mut request = hyper::client::request::Request::new(method, url).unwrap().start().unwrap();
     if let Some(body) = body {
-      request.write(serde::json::to_string(&body).unwrap_or("".to_string()).as_bytes());
+      json::to_string(&body).ok().and_then(|b| request.write(b.as_bytes()).ok());
     }
     let mut resp = request.send();
     match resp {
