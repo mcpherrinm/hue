@@ -3,10 +3,10 @@
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
 use serde;
-use super::json_helper::FromJson;
 
 /// Lots of APIs returned a success/error data type:
 /// http://www.developers.meethue.com/documentation/error-messages
+#[derive(Clone)]
 pub struct Status {
   pub success: bool,
   pub value: String
@@ -25,7 +25,7 @@ impl super::json_helper::FromJson for Status {
 
 pub mod light {
   use std::collections::btree_map::BTreeMap;
-  use serde::json;
+  use serde::json::{self, Value};
   use super::Status;
 
   /// The trait describing lights REST endpoints on the API.  Implemented by Bridge
@@ -47,7 +47,7 @@ pub mod light {
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
   /// conflicting color mode options.
   /// Possibly this should be three structs, as some members are only get/set
-  #[derive(Default)]
+  #[derive(Default, Copy, Clone)]
   pub struct State {
     pub on: Option<bool>,
     pub bri: Option<u8>,
@@ -76,15 +76,14 @@ pub mod light {
     })
   }
 
-/*
-  impl ToJson for State {
-    fn to_json(&self) -> Json {
+  impl super::super::json_helper::ToJson for State {
+    fn to_json(&self) -> Value {
       let mut object = BTreeMap::new();
       maybe_insert!(self, object, on, bri, hue, sat, xy, ct, alert, effect);
       maybe_insert!(self, object, colormode, reachable, transitiontime);
-      json::Object(object)
+      Value::Object(object)
     }
-  }*/
+  }
 
   macro_rules! find_from_json {
     ($map: ident, $field: expr) => (
@@ -114,17 +113,18 @@ pub mod light {
     }
   }
 
+  #[derive(Copy, Clone)]
   pub enum ColorMode { HueSat, CieXy, ColorTemperature }
-  /*impl ToJson for ColorMode {
-    fn to_json(&self) -> Json {
-      json::String(
+  impl super::super::json_helper::ToJson for ColorMode {
+    fn to_json(&self) -> Value {
+      Value::String(
         match *self {
           ColorMode::HueSat => "hs",
           ColorMode::CieXy => "xy",
           ColorMode::ColorTemperature => "ct"
         }.to_string())
     }
-  }*/
+  }
 
   impl super::super::json_helper::FromJson for ColorMode {
     fn from_json(json: &::serde::json::Value) -> Option<ColorMode> {
@@ -142,17 +142,18 @@ pub mod light {
     }
   }
 
+  #[derive(Copy, Clone)]
   pub enum Alert { None, Select, LSelect }
-  /*impl ToJson for Alert {
-    fn to_json(&self) -> json::Json {
-      json::String(
+  impl super::super::json_helper::ToJson for Alert {
+    fn to_json(&self) -> Value {
+      Value::String(
         match *self {
           Alert::None => "none",
           Alert::Select => "select",
           Alert::LSelect => "lselect"
         }.to_string())
     }
-  }*/
+  }
 
   impl super::super::json_helper::FromJson for Alert {
     fn from_json(json: &::serde::json::Value) -> Option<Alert> {
@@ -170,17 +171,17 @@ pub mod light {
     }
   }
 
+  #[derive(Copy, Clone)]
   pub enum Effect { None, ColorLoop }
-  /*
-  impl ToJson for Effect {
-    fn to_json(&self) -> json::Json {
-      json::String(
+  impl super::super::json_helper::ToJson for Effect {
+    fn to_json(&self) -> Value {
+      Value::String(
         match *self {
           Effect::None=> "none",
           Effect::ColorLoop => "colorloop",
         }.to_string())
     }
-  }*/
+  }
 
   impl super::super::json_helper::FromJson for Effect {
     fn from_json(json: &::serde::json::Value) -> Option<Effect> {
@@ -197,6 +198,7 @@ pub mod light {
     }
   }
 
+  #[derive(Clone)]
   pub struct Attributes {
     pub state: State,
     pub type_: String,
@@ -227,6 +229,7 @@ pub mod light {
   }
 
   /// Reserved for future use, apparently.
+  #[derive(Clone, Copy)]
   pub struct PointSymbol;
 
   #[test]

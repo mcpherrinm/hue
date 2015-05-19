@@ -1,6 +1,6 @@
 use hyper;
 
-use super::json_helper::FromJson;
+use super::json_helper::{ToJson, FromJson};
 use super::rest_api;
 use serde;
 use serde::json::{self, value, Value};
@@ -60,8 +60,7 @@ impl rest_api::light::Light for Bridge {
   }
 
   fn set_state(&mut self, id: &str, state: rest_api::light::State) -> Option<rest_api::Status> {
-   // self.put(&format!("/lights/{}/state", id)[..], state.to_json())
-    self.put(&format!("/lights/{}/state", id)[..], serde::json::value::Value::Null)
+    self.put(&format!("/lights/{}/state", id)[..], state.to_json())
   }
 
   fn rename(&mut self, name: &str) -> Option<rest_api::Status> {
