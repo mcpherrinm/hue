@@ -38,14 +38,10 @@ impl Bridge {
     let mut resp = request.send();
     match resp {
       Ok(mut resp) => {
-        if resp.status != hyper::status::StatusCode::Ok { return None };
+        if resp.status != hyper::status::StatusCode::Ok { return None }
         let mut body: String = "".to_string();
-        let _ = resp.read_to_string(&mut body);
-        // debug print:
-        println!("Response: {}", body);
-        //
-        let v: Value = json::from_str(&body[..]).unwrap();
-        super::json_helper::FromJson::from_json(&v)
+        if !resp.read_to_string(&mut body).is_ok() { return None }
+        json::from_str(&body[..]).ok().and_then(|v| super::json_helper::FromJson::from_json(&v))
       },
       _ => None
     }
