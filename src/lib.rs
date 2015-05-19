@@ -1,9 +1,8 @@
-#![feature(macro_rules)]
-#![feature(if_let)]
-
-extern crate serialize;
-use rest_api::light::Light as RestLight;
+extern crate serde;
+extern crate hyper;
 mod json_helper;
+
+use rest_api::light::Light as RestLight;
 
 // rest_api and bridge are lower level APIs that follow the Philips Hue Api
 // design closely.  They underly the wrappers in this file.
@@ -26,12 +25,12 @@ impl Hue {
   }
 
   /// A light controller for the Nth light
-  pub fn light<'a>(&'a mut self, index: uint) -> Option<OneLight<'a>> {
+  pub fn light(&mut self, index: usize) -> Option<OneLight> {
     self.lights().nth(index)
   }
 
   /// Iterate over all lights
-  pub fn lights<'a>(&'a mut self) -> LightIter<'a> {
+  pub fn lights(&mut self) -> LightIter {
     let lights = self.bridge.get_all().unwrap();
     LightIter{handle: self, lights: lights.into_iter()}
   }
@@ -50,11 +49,12 @@ pub struct LightIter<'a> {
   /// The Hue this was created for
   handle: &'a mut Hue,
   /// All the lights at the start of iteration
-  lights: ::std::vec::MoveItems<(String, rest_api::light::Attributes)>,
+  lights: ::std::vec::IntoIter<(String, rest_api::light::Attributes)>,
 }
 
-impl<'a> Iterator<OneLight<'a>> for LightIter<'a> {
-  fn next(&mut self) -> Option<OneLight<'a>> {
+impl<'a> Iterator for LightIter<'a> {
+  type Item = OneLight;
+  fn next(&mut self) -> Option<OneLight> {
     match self.lights.next() {
       None => None,
       Some((id, attrs)) => {
@@ -64,12 +64,12 @@ impl<'a> Iterator<OneLight<'a>> for LightIter<'a> {
   }
 }
 
-pub struct OneLight<'a> {
+pub struct OneLight {
   id: String,
   attrs: rest_api::light::Attributes
 }
 
 // This is the main
-impl<'a> Light for OneLight<'a> {
+impl Light for OneLight {
 
 }

@@ -2,6 +2,8 @@
 //! The mapping of these types and functions to the Hue REST Api should be
 //! trivial.  Where possible, types are re-used for receiving and sending.
 //! Enums are used in place of strings when there is a fixed set of values.
+use serde;
+use super::json_helper::FromJson;
 
 /// Lots of APIs returned a success/error data type:
 /// http://www.developers.meethue.com/documentation/error-messages
@@ -11,9 +13,9 @@ pub struct Status {
 }
 
 impl super::json_helper::FromJson for Status {
-  fn from_json(json: &::serialize::json::Json) -> Option<Status> {
+  fn from_json(json: &serde::json::Value) -> Option<Status> {
     match json {
-      &::serialize::json::String(ref s) => {
+      &serde::json::Value::String(ref s) => {
           None
       }
       _ => None
@@ -22,10 +24,8 @@ impl super::json_helper::FromJson for Status {
 }
 
 pub mod light {
-  use std::collections::TreeMap;
-  use serialize::json;
-  use serialize::json::{Json, ToJson};
-  use super::super::json_helper::FromJson;
+  use std::collections::btree_map::BTreeMap;
+  use serde::json;
   use super::Status;
 
   /// The trait describing lights REST endpoints on the API.  Implemented by Bridge
@@ -47,7 +47,7 @@ pub mod light {
   /// Hue flux bulbs don't have color info.  The bridge is buggy if you set
   /// conflicting color mode options.
   /// Possibly this should be three structs, as some members are only get/set
-  #[deriving(Default)]
+  #[derive(Default)]
   pub struct State {
     pub on: Option<bool>,
     pub bri: Option<u8>,
@@ -63,38 +63,39 @@ pub mod light {
   }
 
   // Macros to the rescue for verbose code!
-  macro_rules! maybe_insert_named(
+  macro_rules! maybe_insert_named {
     ($slf: ident, $object: ident, $field:ident, $json_name: expr) => (
       if let Some($field) = $slf.$field {
         $object.insert($json_name.to_string(), $field.to_json());
       }
     )
-  )
-  macro_rules! maybe_insert(
+  }
+  macro_rules! maybe_insert {
     ($slf: ident, $object: ident, $($field:ident),* ) => ({
-      $( maybe_insert_named!($slf, $object, $field, stringify!($field)) )*
+      $( maybe_insert_named!($slf, $object, $field, stringify!($field)); )*
     })
-  )
+  }
 
+/*
   impl ToJson for State {
     fn to_json(&self) -> Json {
-      let mut object = TreeMap::new();
+      let mut object = BTreeMap::new();
       maybe_insert!(self, object, on, bri, hue, sat, xy, ct, alert, effect);
       maybe_insert!(self, object, colormode, reachable, transitiontime);
       json::Object(object)
     }
+  }*/
+
+  macro_rules! find_from_json {
+    ($map: ident, $field: expr) => (
+      $map.get($field).and_then(|x| super::super::json_helper::FromJson::from_json(x))
+    )
   }
 
-  macro_rules! find_from_json(
-    ($map: ident, $field: expr) => (
-      $map.find(&$field.into_string()).and_then(|x| FromJson::from_json(x))
-    )
-  )
-
-  impl FromJson for State {
-    fn from_json(object: &Json) -> Option<State> {
+  impl super::super::json_helper::FromJson for State {
+    fn from_json(object: &::serde::json::Value) -> Option<State> {
       match object {
-        &json::Object(ref map) =>
+        &::serde::json::Value::Object(ref map) =>
           Some(State {
             on: find_from_json!(map, "on"),
             bri: find_from_json!(map, "bri"),
@@ -114,7 +115,7 @@ pub mod light {
   }
 
   pub enum ColorMode { HueSat, CieXy, ColorTemperature }
-  impl ToJson for ColorMode {
+  /*impl ToJson for ColorMode {
     fn to_json(&self) -> Json {
       json::String(
         match *self {
@@ -123,13 +124,13 @@ pub mod light {
           ColorMode::ColorTemperature => "ct"
         }.to_string())
     }
-  }
+  }*/
 
-  impl FromJson for ColorMode {
-    fn from_json(json: &Json) -> Option<ColorMode> {
+  impl super::super::json_helper::FromJson for ColorMode {
+    fn from_json(json: &::serde::json::Value) -> Option<ColorMode> {
       match json {
-        &json::String(ref s) => {
-          match s.as_slice() {
+        &::serde::json::Value::String(ref s) => {
+          match &s[..] {
             "hs" => Some(ColorMode::HueSat),
             "xy" => Some(ColorMode::CieXy),
             "ct" => Some(ColorMode::ColorTemperature),
@@ -142,7 +143,7 @@ pub mod light {
   }
 
   pub enum Alert { None, Select, LSelect }
-  impl ToJson for Alert {
+  /*impl ToJson for Alert {
     fn to_json(&self) -> json::Json {
       json::String(
         match *self {
@@ -151,13 +152,13 @@ pub mod light {
           Alert::LSelect => "lselect"
         }.to_string())
     }
-  }
+  }*/
 
-  impl FromJson for Alert {
-    fn from_json(json: &Json) -> Option<Alert> {
+  impl super::super::json_helper::FromJson for Alert {
+    fn from_json(json: &::serde::json::Value) -> Option<Alert> {
       match json {
-        &json::String(ref s) => {
-          match s.as_slice() {
+        &::serde::json::Value::String(ref s) => {
+          match &s[..] {
             "none" => Some(Alert::None),
             "select" => Some(Alert::Select),
             "lselect" => Some(Alert::LSelect),
@@ -170,6 +171,7 @@ pub mod light {
   }
 
   pub enum Effect { None, ColorLoop }
+  /*
   impl ToJson for Effect {
     fn to_json(&self) -> json::Json {
       json::String(
@@ -178,13 +180,13 @@ pub mod light {
           Effect::ColorLoop => "colorloop",
         }.to_string())
     }
-  }
+  }*/
 
-  impl FromJson for Effect {
-    fn from_json(json: &Json) -> Option<Effect> {
+  impl super::super::json_helper::FromJson for Effect {
+    fn from_json(json: &::serde::json::Value) -> Option<Effect> {
       match json {
-        &json::String(ref s) => {
-          match s.as_slice() {
+        &::serde::json::Value::String(ref s) => {
+          match &s[..] {
             "none" => Some(Effect::None),
             "colorloop" => Some(Effect::ColorLoop),
             _ => None,
@@ -206,10 +208,10 @@ pub mod light {
 
   // No ToJson implementation for Attributes since we only recieve it.
 
-  impl FromJson for Attributes {
-    fn from_json(json: &Json) -> Option<Attributes> {
+  impl super::super::json_helper::FromJson for Attributes {
+    fn from_json(json: &::serde::json::Value) -> Option<Attributes> {
       match json {
-        &json::Object(ref map) =>
+        &::serde::json::Value::Object(ref map) =>
           Some(Attributes{
           // These should return None instead of failing
             state: find_from_json!(map, "state").unwrap(),

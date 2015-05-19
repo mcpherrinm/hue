@@ -9,3 +9,5 @@ license="MIT"
 
 [dependencies]
 hyper="*"
+time="*"
+serde="*"
