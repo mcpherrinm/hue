@@ -1,7 +1,5 @@
 //! An example of using the raw types and bridge API
 extern crate hue;
-extern crate serialize;
-use serialize::json::ToJson;
 use hue::rest_api::light::Light;
 
 fn main() {

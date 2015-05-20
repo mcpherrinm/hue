@@ -1,6 +1,5 @@
 //! An example of using the raw types and bridge API
 extern crate hue;
-extern crate serialize;
 use std::default::Default;
 use hue::rest_api::light::Light;
 
