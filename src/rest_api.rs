@@ -16,6 +16,7 @@ impl super::json_helper::FromJson for Status {
   fn from_json(json: &serde::json::Value) -> Option<Status> {
     match json {
       &serde::json::Value::String(ref s) => {
+          println!("value is {}", s);
           None
       }
       _ => None
@@ -25,8 +26,9 @@ impl super::json_helper::FromJson for Status {
 
 pub mod light {
   use std::collections::btree_map::BTreeMap;
-  use serde::json::{self, Value};
+  use serde::json::Value;
   use super::Status;
+  use json_helper::{self, ToJson, FromJson};
 
   /// The trait describing lights REST endpoints on the API.  Implemented by Bridge
   pub trait Light {
@@ -76,7 +78,7 @@ pub mod light {
     })
   }
 
-  impl super::super::json_helper::ToJson for State {
+  impl json_helper::ToJson for State {
     fn to_json(&self) -> Value {
       let mut object = BTreeMap::new();
       maybe_insert!(self, object, on, bri, hue, sat, xy, ct, alert, effect);
@@ -87,14 +89,14 @@ pub mod light {
 
   macro_rules! find_from_json {
     ($map: ident, $field: expr) => (
-      $map.get($field).and_then(|x| super::super::json_helper::FromJson::from_json(x))
+      $map.get($field).and_then(|x| json_helper::FromJson::from_json(x))
     )
   }
 
-  impl super::super::json_helper::FromJson for State {
-    fn from_json(object: &::serde::json::Value) -> Option<State> {
+  impl json_helper::FromJson for State {
+    fn from_json(object: &Value) -> Option<State> {
       match object {
-        &::serde::json::Value::Object(ref map) =>
+        &Value::Object(ref map) =>
           Some(State {
             on: find_from_json!(map, "on"),
             bri: find_from_json!(map, "bri"),
@@ -115,7 +117,7 @@ pub mod light {
 
   #[derive(Copy, Clone)]
   pub enum ColorMode { HueSat, CieXy, ColorTemperature }
-  impl super::super::json_helper::ToJson for ColorMode {
+  impl json_helper::ToJson for ColorMode {
     fn to_json(&self) -> Value {
       Value::String(
         match *self {
@@ -126,10 +128,10 @@ pub mod light {
     }
   }
 
-  impl super::super::json_helper::FromJson for ColorMode {
-    fn from_json(json: &::serde::json::Value) -> Option<ColorMode> {
+  impl json_helper::FromJson for ColorMode {
+    fn from_json(json: &Value) -> Option<ColorMode> {
       match json {
-        &::serde::json::Value::String(ref s) => {
+        &Value::String(ref s) => {
           match &s[..] {
             "hs" => Some(ColorMode::HueSat),
             "xy" => Some(ColorMode::CieXy),
@@ -144,7 +146,7 @@ pub mod light {
 
   #[derive(Copy, Clone)]
   pub enum Alert { None, Select, LSelect }
-  impl super::super::json_helper::ToJson for Alert {
+  impl json_helper::ToJson for Alert {
     fn to_json(&self) -> Value {
       Value::String(
         match *self {
@@ -155,10 +157,10 @@ pub mod light {
     }
   }
 
-  impl super::super::json_helper::FromJson for Alert {
-    fn from_json(json: &::serde::json::Value) -> Option<Alert> {
+  impl json_helper::FromJson for Alert {
+    fn from_json(json: &Value) -> Option<Alert> {
       match json {
-        &::serde::json::Value::String(ref s) => {
+        &Value::String(ref s) => {
           match &s[..] {
             "none" => Some(Alert::None),
             "select" => Some(Alert::Select),
@@ -173,7 +175,7 @@ pub mod light {
 
   #[derive(Copy, Clone)]
   pub enum Effect { None, ColorLoop }
-  impl super::super::json_helper::ToJson for Effect {
+  impl json_helper::ToJson for Effect {
     fn to_json(&self) -> Value {
       Value::String(
         match *self {
@@ -183,10 +185,10 @@ pub mod light {
     }
   }
 
-  impl super::super::json_helper::FromJson for Effect {
-    fn from_json(json: &::serde::json::Value) -> Option<Effect> {
+  impl json_helper::FromJson for Effect {
+    fn from_json(json: &Value) -> Option<Effect> {
       match json {
-        &::serde::json::Value::String(ref s) => {
+        &Value::String(ref s) => {
           match &s[..] {
             "none" => Some(Effect::None),
             "colorloop" => Some(Effect::ColorLoop),
@@ -210,10 +212,10 @@ pub mod light {
 
   // No ToJson implementation for Attributes since we only recieve it.
 
-  impl super::super::json_helper::FromJson for Attributes {
-    fn from_json(json: &::serde::json::Value) -> Option<Attributes> {
+  impl json_helper::FromJson for Attributes {
+    fn from_json(json: &Value) -> Option<Attributes> {
       match json {
-        &::serde::json::Value::Object(ref map) =>
+        &Value::Object(ref map) =>
           Some(Attributes{
           // These should return None instead of failing
             state: find_from_json!(map, "state").unwrap(),
@@ -236,16 +238,16 @@ pub mod light {
   fn test_encode_state() {
     //! A wholly incomplete test
     let mut state = State{on: None, bri: None, hue: None, sat: None, xy: None, ct: None, alert: None, effect: None, colormode: None, reachable: None, transitiontime: None };
-    assert_eq!(state.to_json().to_string(), "{}".to_string());
+    assert_eq!(json::to_string(&state.to_json()).unwrap(), "{}".to_string());
     state.on = Some(true);
-    assert_eq!(state.to_json().to_string(),
+    assert_eq!(json::to_string(&state.to_json()).unwrap(),
                "{\"on\":true}".to_string());
     state.bri = Some(100);
-    assert_eq!(state.to_json().to_string(),
+    assert_eq!(json::to_string(&state.to_json()).unwrap(),
                "{\"bri\":100,\"on\":true}".to_string());
     state.bri = None;
     state.on = Some(false);
-    assert_eq!(state.to_json().to_string(),
+    assert_eq!(json::to_string(&state.to_json()).unwrap(),
                "{\"on\":false}".to_string());
   }
 }

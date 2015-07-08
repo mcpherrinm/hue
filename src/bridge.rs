@@ -2,8 +2,7 @@ use hyper;
 
 use super::json_helper::{ToJson, FromJson};
 use super::rest_api;
-use serde;
-use serde::json::{self, value, Value};
+use serde::json::{self, Value};
 use std::io::{Read, Write};
 
 pub struct Bridge {
@@ -35,7 +34,7 @@ impl Bridge {
     if let Some(body) = body {
       json::to_string(&body).ok().and_then(|b| request.write(b.as_bytes()).ok());
     }
-    let mut resp = request.send();
+    let resp = request.send();
     match resp {
       Ok(mut resp) => {
         if resp.status != hyper::status::StatusCode::Ok { return None }
@@ -63,7 +62,7 @@ impl rest_api::light::Light for Bridge {
     self.put(&format!("/lights/{}/state", id)[..], state.to_json())
   }
 
-  fn rename(&mut self, name: &str) -> Option<rest_api::Status> {
+  fn rename(&mut self, _name: &str) -> Option<rest_api::Status> {
     None
   }
 

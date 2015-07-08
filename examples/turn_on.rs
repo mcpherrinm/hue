@@ -12,4 +12,5 @@ fn main() {
   bridge.set_state("2", state);
   bridge.set_state("3", state);
   bridge.set_state("4", state);
+  bridge.set_state("5", state);
 }
